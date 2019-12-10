@@ -167,6 +167,7 @@ namespace Microcharts
                 var itemSize = this.CalculateItemSize(width, height, footerHeight, headerHeight, labels.Length);
                 var origin = this.CalculateYOrigin(itemSize.Height, headerHeight);
                 var points = this.CalculatePoints(itemSize, origin, headerHeight, yAxisXShift);
+                var labelsPoints = this.CalculateLabelsPoints(itemSize, labels.Count(), yAxisXShift);
 
                 var cnt = 0;
                 if (ShowYAxisText || ShowYAxisLines)
@@ -199,8 +200,20 @@ namespace Microcharts
                 this.DrawAreas(canvas, points, itemSize, origin, headerHeight);
                 this.DrawPoints(canvas, points);
                 this.DrawHeader(canvas, valueLabels, valueLabelSizes, points, itemSize, height, headerHeight);
-                this.DrawFooter(canvas, labels, labelSizes, points, itemSize, height, footerHeight);
+                this.DrawFooter(canvas, labels, labelSizes, labelsPoints, itemSize, height, footerHeight);
             }
+        }
+
+        private SKPoint[] CalculateLabelsPoints(SKSize itemSize, int itemsCount, float originX = 0)
+        {
+            var result = new List<SKPoint>();
+
+            for (int i = 0; i < itemsCount; i++)
+            {
+                result.Add(CalculatePointX(i, itemSize, originX));
+            }
+
+            return result.ToArray();
         }
 
         protected float CalculateYOrigin(float itemHeight, float headerHeight)
@@ -244,6 +257,12 @@ namespace Microcharts
             var x = originX + this.Margin + (itemSize.Width / 2) + (i * (itemSize.Width + this.Margin));
             var y = headerHeight + ((1 - this.AnimationProgress) * (origin - headerHeight) + (((this.MaxValue - value) / this.ValueRange) * itemSize.Height) * this.AnimationProgress);
             return new SKPoint(x, y);
+        }
+
+        protected SKPoint CalculatePointX(int i, SKSize itemSize, float originX = 0)
+        {
+            var x = originX + this.Margin + (itemSize.Width / 2) + (i * (itemSize.Width + this.Margin));
+            return new SKPoint(x, 0);
         }
 
         protected virtual void DrawHeader(SKCanvas canvas, string[] labels, SKRect[] labelSizes, SKPoint[] points, SKSize itemSize, int height, float headerHeight)
@@ -324,7 +343,6 @@ namespace Microcharts
 
                 for (int i = 0; i < points.Length; i++)
                 {
-                    var entry = this.Entries.ElementAt(i);
                     var point = points[i];
 
                     if (!string.IsNullOrEmpty(texts[i]))
@@ -335,7 +353,7 @@ namespace Microcharts
                             {
                                 paint.TextSize = this.LabelTextSize;
                                 paint.IsAntialias = true;
-                                paint.Color = colors[i];
+                                paint.Color = LabelColor;
                                 paint.IsStroke = false;
                                 paint.Typeface = base.Typeface;
                                 var bounds = sizes[i];

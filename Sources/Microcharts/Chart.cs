@@ -213,12 +213,12 @@ namespace Microcharts
         {
             get
             {
-                if (!this.Entries.Any())
-                {
-                    return 0;
-                }
+                //if (!this.Entries.Any())
+                //{
+                //    return 0;
+                //}
 
-                if (this.InternalMaxValue == null)
+                if (this.InternalMaxValue == null && Entries != null)
                 {
                     return Math.Max(0, this.Entries.Max(x => x.Value));
                 }
