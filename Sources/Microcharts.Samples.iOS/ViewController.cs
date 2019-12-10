@@ -53,22 +53,22 @@ namespace Microcharts.Samples.iOS
 
             var entries = Data.CreateEntries((int)this.valuesSlider.Value, hasPositiveValues, hasNegativeValues, hasLabels, hasValueLabels, hasSingleColor);
 
-            CreateChartCard(new BarChart { Entries = entries, BarAreaAlpha = areaAlpha, ShowYAxisLines = true, ShowYAxisText = true, YAxisPosition = Position.Left });
-            CreateChartCard(new PointChart { Entries = entries, PointAreaAlpha = areaAlpha, PointSize = pointSize, ShowYAxisLines = true, ShowYAxisText = true, YAxisPosition = Position.Right });
-            CreateChartCard(new LineChart { Entries = entries, LineAreaAlpha = areaAlpha, PointMode = PointMode.Square, PointSize = pointSize, LineSize = lineSizeSlider.Value, LineMode = lineMode });
-            
             CreateChartCard(new RadarChart { Entries = entries, MaxValue = entries.Max(x => Math.Abs(x.Value) + 100) });
             if (!hasSingleColor)
                 CreateChartCard(new DonutChart { Entries = entries, HoleRadius = holeSlider.Value });
 
+            CreateChartCard(new BarChart { Entries = entries, BarAreaAlpha = areaAlpha });
+            CreateChartCard(new PointChart { Entries = entries, PointAreaAlpha = areaAlpha, PointSize = pointSize });
+            CreateChartCard(new LineChart { Entries = entries, LineAreaAlpha = areaAlpha, PointMode = PointMode.Square, PointSize = pointSize, LineSize = lineSizeSlider.Value, LineMode = lineMode });
             CreateChartCard(new RadialGaugeChart { Entries = entries, LineAreaAlpha = areaAlpha, MaxValue = entries.Max(x => Math.Abs(x.Value) + 100) });
+
+
+
         }
 
         public override void ViewDidLoad()
         {
             base.ViewDidLoad();
-
-            hasSignleColorSwitch.On = false;
 
             this.Reload(null, null);
 

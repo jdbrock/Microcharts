@@ -124,7 +124,7 @@ namespace Microcharts
                 }
             }
         }
-        
+
         /// <summary>
         /// Draws text vertically aligned
         /// </summary>
@@ -137,7 +137,7 @@ namespace Microcharts
         {
             canvas.DrawTextCenteredVertically(text, paint, point.X, point.Y);
         }
-        
+
         /// <summary>
         /// Draws text vertically aligned
         /// </summary>
