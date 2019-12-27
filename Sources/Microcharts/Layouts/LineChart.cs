@@ -3,6 +3,7 @@
 
 namespace Microcharts
 {
+    using System.Collections.Generic;
     using System.Linq;
     using SkiaSharp;
 
@@ -56,14 +57,14 @@ namespace Microcharts
         #region Methods
 
         protected override void DrawAreas(SKCanvas canvas, SKPoint[] points, SKSize itemSize, float origin,
-            float headerHeight)
+            float headerHeight, IEnumerable<ChartEntry> entries)
         {
             //base.DrawAreas(canvas, points, itemSize, origin);
-            this.DrawArea(canvas, points, itemSize, origin);
-            this.DrawLine(canvas, points, itemSize);
+            this.DrawArea(canvas, points, itemSize, origin, entries);
+            this.DrawLine(canvas, points, itemSize, entries);
         }
 
-        protected void DrawLine(SKCanvas canvas, SKPoint[] points, SKSize itemSize)
+        protected void DrawLine(SKCanvas canvas, SKPoint[] points, SKSize itemSize, IEnumerable<ChartEntry> entries)
         {
             if (points.Length > 1 && this.LineMode != LineMode.None)
             {
@@ -75,7 +76,7 @@ namespace Microcharts
                     IsAntialias = true,
                 })
                 {
-                    using (var shader = this.CreateXGradient(points))
+                    using (var shader = this.CreateXGradient(points, entries))
                     {
                         paint.Shader = shader;
 
@@ -105,7 +106,7 @@ namespace Microcharts
             }
         }
 
-        protected void DrawArea(SKCanvas canvas, SKPoint[] points, SKSize itemSize, float origin)
+        protected void DrawArea(SKCanvas canvas, SKPoint[] points, SKSize itemSize, float origin, IEnumerable<ChartEntry> entries)
         {
             if (this.LineAreaAlpha > 0 && points.Length > 1)
             {
@@ -116,7 +117,7 @@ namespace Microcharts
                     IsAntialias = true,
                 })
                 {
-                    using (var shaderX = this.CreateXGradient(points, (byte)(this.LineAreaAlpha * this.AnimationProgress)))
+                    using (var shaderX = this.CreateXGradient(points, entries, (byte)(this.LineAreaAlpha * this.AnimationProgress)))
                     using (var shaderY = this.CreateYGradient(points, (byte)(this.LineAreaAlpha * this.AnimationProgress)))
                     {
                         paint.Shader = EnableYFadeOutGradient ? SKShader.CreateCompose(shaderY, shaderX, SKBlendMode.SrcOut) : shaderX;
@@ -162,7 +163,7 @@ namespace Microcharts
             return (point, currentControl, nextPoint, nextControl);
         }
 
-        private SKShader CreateXGradient(SKPoint[] points, byte alpha = 255)
+        private SKShader CreateXGradient(SKPoint[] points, IEnumerable<ChartEntry> entries, byte alpha = 255)
         {
             var startX = points.First().X;
             var endX = points.Last().X;
@@ -171,7 +172,7 @@ namespace Microcharts
             return SKShader.CreateLinearGradient(
                 new SKPoint(startX, 0),
                 new SKPoint(endX, 0),
-                this.Entries.Select(x => x.Color.WithAlpha(alpha)).ToArray(),
+                entries.Select(x => x.Color.WithAlpha(alpha)).ToArray(),
                 null,
                 SKShaderTileMode.Clamp);
         }

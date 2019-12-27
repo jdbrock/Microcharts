@@ -113,6 +113,11 @@ namespace Microcharts
         /// </summary>
         public IEnumerable<string> XAxisLabels { get; set; }
 
+        /// <summary>
+        /// A collection of additional values that can be shown on the chart. Can be used to draw several separate lines on the chart.
+        /// </summary>
+        public IEnumerable<IEnumerable<ChartEntry>> AdditionalEntriesCollections { get; set; }
+
         private float ValueRange => this.MaxValue - this.MinValue;
 
         #endregion
@@ -166,7 +171,7 @@ namespace Microcharts
 
                 var itemSize = this.CalculateItemSize(width, height, footerHeight, headerHeight, labels.Length);
                 var origin = this.CalculateYOrigin(itemSize.Height, headerHeight);
-                var points = this.CalculatePoints(itemSize, origin, headerHeight, yAxisXShift);
+                var points = this.CalculatePoints(itemSize, origin, headerHeight, Entries, yAxisXShift);
                 var labelsPoints = this.CalculateLabelsPoints(itemSize, labels.Count(), yAxisXShift);
 
                 var cnt = 0;
@@ -197,8 +202,18 @@ namespace Microcharts
                     }
                 }
 
-                this.DrawAreas(canvas, points, itemSize, origin, headerHeight);
-                this.DrawPoints(canvas, points);
+                if (AdditionalEntriesCollections != null)
+                {
+                    foreach (var entries in AdditionalEntriesCollections)
+                    {
+                        var additionalEntriesPoints = CalculatePoints(itemSize, origin, headerHeight, entries, yAxisXShift);
+                        DrawPoints(canvas, additionalEntriesPoints, entries);
+                        DrawAreas(canvas, additionalEntriesPoints, itemSize, origin, headerHeight, entries);
+                    }
+                }
+
+                this.DrawAreas(canvas, points, itemSize, origin, headerHeight, Entries);
+                this.DrawPoints(canvas, points, Entries);
                 this.DrawHeader(canvas, valueLabels, valueLabelSizes, points, itemSize, height, headerHeight);
                 this.DrawFooter(canvas, labels, labelSizes, labelsPoints, itemSize, height, footerHeight);
             }
@@ -238,13 +253,13 @@ namespace Microcharts
             return new SKSize(w, h);
         }
 
-        protected SKPoint[] CalculatePoints(SKSize itemSize, float origin, float headerHeight, float originX = 0)
+        protected SKPoint[] CalculatePoints(SKSize itemSize, float origin, float headerHeight, IEnumerable<ChartEntry> entries, float originX = 0)
         {
             var result = new List<SKPoint>();
 
-            for (int i = 0; i < this.Entries.Count(); i++)
+            for (int i = 0; i < entries.Count(); i++)
             {
-                var entry = this.Entries.ElementAt(i);
+                var entry = entries.ElementAt(i);
                 var value = entry.Value;
 
                 result.Add(CalculatePoint(value, i, itemSize, origin, headerHeight, originX));
@@ -291,26 +306,26 @@ namespace Microcharts
                             height);
         }
 
-        protected void DrawPoints(SKCanvas canvas, SKPoint[] points)
+        protected void DrawPoints(SKCanvas canvas, SKPoint[] points, IEnumerable<ChartEntry> entries)
         {
             if (points.Length > 0 && PointMode != PointMode.None)
             {
                 for (int i = 0; i < points.Length; i++)
                 {
-                    var entry = this.Entries.ElementAt(i);
+                    var entry = entries.ElementAt(i);
                     var point = points[i];
                     canvas.DrawPoint(point, entry.Color, this.PointSize, this.PointMode);
                 }
             }
         }
 
-        protected virtual void DrawAreas(SKCanvas canvas, SKPoint[] points, SKSize itemSize, float origin, float headerHeight)
+        protected virtual void DrawAreas(SKCanvas canvas, SKPoint[] points, SKSize itemSize, float origin, float headerHeight, IEnumerable<ChartEntry> entries)
         {
             if (points.Length > 0 && this.PointAreaAlpha > 0)
             {
                 for (int i = 0; i < points.Length; i++)
                 {
-                    var entry = this.Entries.ElementAt(i);
+                    var entry = entries.ElementAt(i);
                     var point = points[i];
                     var y = Math.Min(origin, point.Y);
 
