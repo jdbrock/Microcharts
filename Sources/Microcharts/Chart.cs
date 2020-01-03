@@ -287,6 +287,11 @@ namespace Microcharts
         public abstract void DrawContent(SKCanvas canvas, int width, int height);
 
         /// <summary>
+        /// Executes a tap somewhere on the chart's canvas
+        /// </summary>
+        public virtual void TapCanvas(SKPoint locationTapped) { }
+
+        /// <summary>
         /// Draws caption elements on the right or left side of the chart.
         /// </summary>
         /// <param name="canvas">The canvas.</param>

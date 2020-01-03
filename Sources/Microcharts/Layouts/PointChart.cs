@@ -116,7 +116,7 @@ namespace Microcharts
         /// <summary>
         /// A collection of additional values that can be shown on the chart. Can be used to draw several separate lines on the chart.
         /// </summary>
-        public IEnumerable<IEnumerable<ChartEntry>> AdditionalEntriesCollections { get; set; }
+        public IEnumerable<AreaEntry> AreaEntries { get; set; }
 
         private float ValueRange => this.MaxValue - this.MinValue;
 
@@ -202,14 +202,18 @@ namespace Microcharts
                     }
                 }
 
-                if (AdditionalEntriesCollections != null)
+                if (AreaEntries != null)
                 {
-                    foreach (var entries in AdditionalEntriesCollections)
-                    {
-                        var additionalEntriesPoints = CalculatePoints(itemSize, origin, headerHeight, entries, yAxisXShift);
-                        DrawPoints(canvas, additionalEntriesPoints, entries);
-                        DrawAreas(canvas, additionalEntriesPoints, itemSize, origin, headerHeight, entries);
-                    }
+                    var fromEntries = AreaEntries.Select(ae => new ChartEntry(ae.FromValue) { Color = ae.Color });
+                    var toEntries = AreaEntries.Select(ae => new ChartEntry(ae.ToValue) { Color = ae.Color });
+                    var fromEntriesPoints = CalculatePoints(itemSize, origin, headerHeight, fromEntries, yAxisXShift);
+                    var toEntriesPoints = CalculatePoints(itemSize, origin, headerHeight, toEntries, yAxisXShift);
+
+                    DrawPoints(canvas, fromEntriesPoints, fromEntries);
+                    DrawPoints(canvas, toEntriesPoints, toEntries);
+
+                    DrawAreas(canvas, fromEntriesPoints, itemSize, origin, headerHeight, fromEntries, toEntriesPoints);
+                    DrawAreas(canvas, toEntriesPoints, itemSize, origin, headerHeight, toEntries, fromEntriesPoints);
                 }
 
                 this.DrawAreas(canvas, points, itemSize, origin, headerHeight, Entries);
@@ -319,7 +323,7 @@ namespace Microcharts
             }
         }
 
-        protected virtual void DrawAreas(SKCanvas canvas, SKPoint[] points, SKSize itemSize, float origin, float headerHeight, IEnumerable<ChartEntry> entries)
+        protected virtual void DrawAreas(SKCanvas canvas, SKPoint[] points, SKSize itemSize, float origin, float headerHeight, IEnumerable<ChartEntry> entries, SKPoint[] pointsTo = null)
         {
             if (points.Length > 0 && this.PointAreaAlpha > 0)
             {

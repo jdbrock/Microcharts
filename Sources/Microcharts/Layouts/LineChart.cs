@@ -57,10 +57,10 @@ namespace Microcharts
         #region Methods
 
         protected override void DrawAreas(SKCanvas canvas, SKPoint[] points, SKSize itemSize, float origin,
-            float headerHeight, IEnumerable<ChartEntry> entries)
+            float headerHeight, IEnumerable<ChartEntry> entries, SKPoint[] pointsTo)
         {
             //base.DrawAreas(canvas, points, itemSize, origin);
-            this.DrawArea(canvas, points, itemSize, origin, entries);
+            this.DrawArea(canvas, points, itemSize, origin, entries, pointsTo);
             this.DrawLine(canvas, points, itemSize, entries);
         }
 
@@ -106,7 +106,7 @@ namespace Microcharts
             }
         }
 
-        protected void DrawArea(SKCanvas canvas, SKPoint[] points, SKSize itemSize, float origin, IEnumerable<ChartEntry> entries)
+        protected void DrawArea(SKCanvas canvas, SKPoint[] points, SKSize itemSize, float origin, IEnumerable<ChartEntry> entries, SKPoint[] pointsTo = null)
         {
             if (this.LineAreaAlpha > 0 && points.Length > 1)
             {
@@ -120,11 +120,34 @@ namespace Microcharts
                     using (var shaderX = this.CreateXGradient(points, entries, (byte)(this.LineAreaAlpha * this.AnimationProgress)))
                     using (var shaderY = this.CreateYGradient(points, (byte)(this.LineAreaAlpha * this.AnimationProgress)))
                     {
+                        //var startX = points.First().X;
+                        //var endX = points.Last().X;
+                        //var startY = points.Max(i => i.Y);
+                        //var endY = 0f;
+                        //if (pointsTo != null)
+                        //{
+                        //    endY = pointsTo.Min(i => i.Y);
+                        //}
+
+                        //var shader = SKShader.CreateLinearGradient(
+                        //            new SKPoint(startX, startY),
+                        //            new SKPoint(endX, endY),
+                        //            entries.Select(x => x.Color.WithAlpha((byte)(this.LineAreaAlpha * this.AnimationProgress))).ToArray(),
+                        //            null,
+                        //            SKShaderTileMode.Clamp);
                         paint.Shader = EnableYFadeOutGradient ? SKShader.CreateCompose(shaderY, shaderX, SKBlendMode.SrcOut) : shaderX;
 
                         var path = new SKPath();
 
-                        path.MoveTo(points.First().X, origin);
+                        var initialY = origin;
+                        var finishY = origin;
+                        if (pointsTo != null)
+                        {
+                            initialY = pointsTo.Max(p => p.Y);
+                            finishY = pointsTo.Min(p => p.Y);
+                        }
+
+                        path.MoveTo(points.First().X, initialY);
                         path.LineTo(points.First());
 
                         var last = (this.LineMode == LineMode.Spline) ? points.Length - 1 : points.Length;
@@ -132,8 +155,8 @@ namespace Microcharts
                         {
                             if (this.LineMode == LineMode.Spline)
                             {
-                                var entry = this.Entries.ElementAt(i);
-                                var nextEntry = this.Entries.ElementAt(i + 1);
+                                var entry = entries.ElementAt(i);
+                                var nextEntry = entries.ElementAt(i + 1);
                                 var cubicInfo = this.CalculateCubicInfo(points, i, itemSize);
                                 path.CubicTo(cubicInfo.control, cubicInfo.nextControl, cubicInfo.nextPoint);
                             }
@@ -143,7 +166,7 @@ namespace Microcharts
                             }
                         }
                         
-                        path.LineTo(points.Last().X, origin);
+                        path.LineTo(points.Last().X, finishY);
 
                         path.Close();
 
@@ -180,7 +203,7 @@ namespace Microcharts
         private SKShader CreateYGradient(SKPoint[] points, byte alpha = 255)
         {
             var startY = points.Max(i => i.Y);
-            var endY = 0;
+            var endY = 0f;
 
             return SKShader.CreateLinearGradient(
                 new SKPoint(0, startY),
