@@ -56,6 +56,11 @@ namespace Microcharts
 
         #region Methods
 
+        public override void TapCanvas(SKPoint locationTapped)
+        {
+            base.TapCanvas(locationTapped);
+        }
+
         protected override void DrawAreas(SKCanvas canvas, SKPoint[] points, SKSize itemSize, float origin,
             float headerHeight, IEnumerable<ChartEntry> entries, SKPoint[] pointsTo)
         {
