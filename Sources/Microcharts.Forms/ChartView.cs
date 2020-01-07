@@ -15,6 +15,7 @@ namespace Microcharts.Forms
         {
             this.BackgroundColor = Color.Transparent;
             this.PaintSurface += OnPaintCanvas;
+            this.EnableTouchEvents = true;
             this.Touch += ChartView_Touch;
         }
 
@@ -25,11 +26,11 @@ namespace Microcharts.Forms
                 case SKTouchAction.Entered:
                     break;
                 case SKTouchAction.Pressed:
+                    Chart?.TapCanvas(e.Location);
                     break;
                 case SKTouchAction.Moved:
                     break;
                 case SKTouchAction.Released:
-                    Chart?.TapCanvas(e.Location);
                     break;
                 case SKTouchAction.Cancelled:
                     break;

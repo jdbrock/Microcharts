@@ -120,6 +120,11 @@ namespace Microcharts
 
         private float ValueRange => this.MaxValue - this.MinValue;
 
+        /// <summary>
+        /// The calculated points for the entries.
+        /// </summary>
+        protected SKPoint[] EntriesPoints { get; private set; }
+
         #endregion
 
         #region Methods
@@ -172,6 +177,7 @@ namespace Microcharts
                 var itemSize = this.CalculateItemSize(width, height, footerHeight, headerHeight, labels.Length);
                 var origin = this.CalculateYOrigin(itemSize.Height, headerHeight);
                 var points = this.CalculatePoints(itemSize, origin, headerHeight, Entries, yAxisXShift);
+                EntriesPoints = points;
                 var labelsPoints = this.CalculateLabelsPoints(itemSize, labels.Count(), yAxisXShift);
 
                 var cnt = 0;

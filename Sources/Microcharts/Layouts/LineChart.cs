@@ -3,6 +3,7 @@
 
 namespace Microcharts
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using SkiaSharp;
@@ -14,6 +15,11 @@ namespace Microcharts
     /// </summary>
     public class LineChart : PointChart
     {
+        private int _touchRadius = 1000;
+
+        private bool _shouldDrawTooltip = false;
+        private SKPoint _tooltipPoint;
+
         #region Constructors
 
         /// <summary>
@@ -33,6 +39,12 @@ namespace Microcharts
         /// </summary>
         /// <value>The size of the line.</value>
         public float LineSize { get; set; } = 3;
+
+        public float TooltipTextSize { get; set; } = 50;
+
+        public SKColor TooltipTextColor { get; set; }
+
+        public SKColor TooltipBackgroundColor { get; set; }
 
         /// <summary>
         /// Gets or sets the line mode.
@@ -59,6 +71,22 @@ namespace Microcharts
         public override void TapCanvas(SKPoint locationTapped)
         {
             base.TapCanvas(locationTapped);
+            foreach (var point in EntriesPoints)
+            {
+                var distance = Math.Pow(point.X - locationTapped.X, 2) + Math.Pow(point.Y - locationTapped.Y, 2);
+                if (Math.Pow(distance, 2) <= Math.Pow(_touchRadius, 2))
+                {
+                    if (_tooltipPoint != point)
+                    {
+                        _shouldDrawTooltip = true;
+                        _tooltipPoint = point;
+                        return;
+                    }
+                }
+            }
+
+            _shouldDrawTooltip = false;
+            _tooltipPoint = new SKPoint();
         }
 
         protected override void DrawAreas(SKCanvas canvas, SKPoint[] points, SKSize itemSize, float origin,
@@ -92,15 +120,30 @@ namespace Microcharts
                         var last = (this.LineMode == LineMode.Spline) ? points.Length - 1 : points.Length;
                         for (int i = 0; i < last; i++)
                         {
+                            var entry = entries.ElementAt(i);
                             if (this.LineMode == LineMode.Spline)
                             {
-                                var entry = this.Entries.ElementAt(i);
                                 var nextEntry = this.Entries.ElementAt(i + 1);
                                 var cubicInfo = this.CalculateCubicInfo(points, i, itemSize);
                                 path.CubicTo(cubicInfo.control, cubicInfo.nextControl, cubicInfo.nextPoint);
                             }
                             else if (this.LineMode == LineMode.Straight)
                             {
+                                if (_shouldDrawTooltip && _tooltipPoint == points[i])
+                                {
+                                    using (var textPaint = new SKPaint
+                                    {
+                                        Style = SKPaintStyle.StrokeAndFill,
+                                        Color = TooltipTextColor == default(SKColor) ? entry.Color : TooltipTextColor,
+                                        TextAlign = SKTextAlign.Center,
+                                        TextSize = TooltipTextSize,
+                                        StrokeWidth = LineSize
+                                    })
+                                    {
+                                        canvas.DrawText(entry.Label, _tooltipPoint.X, _tooltipPoint.Y - _touchRadius, textPaint);
+                                    }
+                                }
+
                                 path.LineTo(points[i]);
                             }
                         }
@@ -125,21 +168,6 @@ namespace Microcharts
                     using (var shaderX = this.CreateXGradient(points, entries, (byte)(this.LineAreaAlpha * this.AnimationProgress)))
                     using (var shaderY = this.CreateYGradient(points, (byte)(this.LineAreaAlpha * this.AnimationProgress)))
                     {
-                        //var startX = points.First().X;
-                        //var endX = points.Last().X;
-                        //var startY = points.Max(i => i.Y);
-                        //var endY = 0f;
-                        //if (pointsTo != null)
-                        //{
-                        //    endY = pointsTo.Min(i => i.Y);
-                        //}
-
-                        //var shader = SKShader.CreateLinearGradient(
-                        //            new SKPoint(startX, startY),
-                        //            new SKPoint(endX, endY),
-                        //            entries.Select(x => x.Color.WithAlpha((byte)(this.LineAreaAlpha * this.AnimationProgress))).ToArray(),
-                        //            null,
-                        //            SKShaderTileMode.Clamp);
                         paint.Shader = EnableYFadeOutGradient ? SKShader.CreateCompose(shaderY, shaderX, SKBlendMode.SrcOut) : shaderX;
 
                         var path = new SKPath();
