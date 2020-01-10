@@ -15,6 +15,7 @@ namespace Microcharts
     /// </summary>
     public class LineChart : PointChart
     {
+        private const int TooltipYOffset = 50;
         private int _touchRadius = 1000;
 
         private bool _shouldDrawTooltip = false;
@@ -40,11 +41,25 @@ namespace Microcharts
         /// <value>The size of the line.</value>
         public float LineSize { get; set; } = 3;
 
+        /// <summary>
+        /// Size of text of tooltip when tooltip is enabled
+        /// </summary>
         public float TooltipTextSize { get; set; } = 50;
 
-        public SKColor TooltipTextColor { get; set; }
+        /// <summary>
+        /// Radius for the rounding of the tooltip's corners
+        /// </summary>
+        public float TooltipRadius { get; set; } = 20;
 
-        public SKColor TooltipBackgroundColor { get; set; }
+        /// <summary>
+        /// Color of tooltip text
+        /// </summary>
+        public SKColor TooltipTextColor { get; set; } = SKColors.White;
+
+        /// <summary>
+        /// Background color of Tooltip rect
+        /// </summary>
+        public SKColor TooltipBackgroundColor { get; set; } = SKColor.Parse("#4f4f4f");
 
         /// <summary>
         /// Gets or sets the line mode.
@@ -134,13 +149,25 @@ namespace Microcharts
                                     using (var textPaint = new SKPaint
                                     {
                                         Style = SKPaintStyle.StrokeAndFill,
-                                        Color = TooltipTextColor == default(SKColor) ? entry.Color : TooltipTextColor,
+                                        Color = TooltipTextColor,
                                         TextAlign = SKTextAlign.Center,
-                                        TextSize = TooltipTextSize,
-                                        StrokeWidth = LineSize
+                                        TextSize = TooltipTextSize
                                     })
                                     {
-                                        canvas.DrawText(entry.Label, _tooltipPoint.X, _tooltipPoint.Y - _touchRadius, textPaint);
+                                        var topBottomMargin = TooltipTextSize;
+                                        var tooltipTextYPosition = _tooltipPoint.Y - TooltipYOffset - topBottomMargin;
+                                        var textPath = textPaint.GetTextPath(entry.Label, _tooltipPoint.X, tooltipTextYPosition);
+                                        using (var tooltipBackgroundPaint = new SKPaint
+                                        {
+                                            Style = SKPaintStyle.StrokeAndFill,
+                                            Color = TooltipBackgroundColor
+                                        })
+                                        {
+                                            var leftRightMargin = TooltipTextSize / 2;
+                                            canvas.DrawRoundRect(new SKRect(textPath.Bounds.Left - leftRightMargin, textPath.Bounds.Top - topBottomMargin, textPath.Bounds.Right + leftRightMargin, textPath.Bounds.Bottom + topBottomMargin), TooltipRadius, TooltipRadius, tooltipBackgroundPaint);
+                                        }
+                                        
+                                        canvas.DrawText(entry.Label, _tooltipPoint.X, tooltipTextYPosition, textPaint);
                                     }
                                 }
 
