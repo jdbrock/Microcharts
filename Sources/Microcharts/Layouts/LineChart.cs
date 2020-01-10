@@ -79,6 +79,16 @@ namespace Microcharts
         /// <value>The state of the fadeout gradient.</value>
         public bool EnableYFadeOutGradient { get; set; } = false;
 
+        /// <summary>
+        /// The entry for which a tooltip is shown if tooltips are enabled. Will be null otherwise.
+        /// </summary>
+        public ChartEntry TouchedEntry { get; private set; }
+
+        /// <summary>
+        /// The touch event handler's logic will be executed based on this property. If left as false, tooltips will not be shown.
+        /// </summary>
+        public bool IsTooltipEnabled { get; set; }
+
         #endregion
 
         #region Methods
@@ -86,22 +96,28 @@ namespace Microcharts
         public override void TapCanvas(SKPoint locationTapped)
         {
             base.TapCanvas(locationTapped);
-            foreach (var point in EntriesPoints)
+            if (IsTooltipEnabled)
             {
-                var distance = Math.Pow(point.X - locationTapped.X, 2) + Math.Pow(point.Y - locationTapped.Y, 2);
-                if (Math.Pow(distance, 2) <= Math.Pow(_touchRadius, 2))
+                for (int i = 0; i < EntriesPoints.Length; i++)
                 {
-                    if (_tooltipPoint != point)
+                    SKPoint point = (SKPoint)EntriesPoints[i];
+                    var distance = Math.Pow(point.X - locationTapped.X, 2) + Math.Pow(point.Y - locationTapped.Y, 2);
+                    if (Math.Pow(distance, 2) <= Math.Pow(_touchRadius, 2))
                     {
-                        _shouldDrawTooltip = true;
-                        _tooltipPoint = point;
-                        return;
+                        if (_tooltipPoint != point)
+                        {
+                            TouchedEntry = Entries.ElementAt(i);
+                            _shouldDrawTooltip = true;
+                            _tooltipPoint = point;
+                            return;
+                        }
                     }
                 }
             }
 
             _shouldDrawTooltip = false;
-            _tooltipPoint = new SKPoint();
+            _tooltipPoint = default;
+            TouchedEntry = null;
         }
 
         protected override void DrawAreas(SKCanvas canvas, SKPoint[] points, SKSize itemSize, float origin,
@@ -138,7 +154,7 @@ namespace Microcharts
                             var entry = entries.ElementAt(i);
                             if (this.LineMode == LineMode.Spline)
                             {
-                                var nextEntry = this.Entries.ElementAt(i + 1);
+                                var nextEntry = entries.ElementAt(i + 1);
                                 var cubicInfo = this.CalculateCubicInfo(points, i, itemSize);
                                 path.CubicTo(cubicInfo.control, cubicInfo.nextControl, cubicInfo.nextPoint);
                             }
@@ -146,29 +162,7 @@ namespace Microcharts
                             {
                                 if (_shouldDrawTooltip && _tooltipPoint == points[i])
                                 {
-                                    using (var textPaint = new SKPaint
-                                    {
-                                        Style = SKPaintStyle.StrokeAndFill,
-                                        Color = TooltipTextColor,
-                                        TextAlign = SKTextAlign.Center,
-                                        TextSize = TooltipTextSize
-                                    })
-                                    {
-                                        var topBottomMargin = TooltipTextSize;
-                                        var tooltipTextYPosition = _tooltipPoint.Y - TooltipYOffset - topBottomMargin;
-                                        var textPath = textPaint.GetTextPath(entry.Label, _tooltipPoint.X, tooltipTextYPosition);
-                                        using (var tooltipBackgroundPaint = new SKPaint
-                                        {
-                                            Style = SKPaintStyle.StrokeAndFill,
-                                            Color = TooltipBackgroundColor
-                                        })
-                                        {
-                                            var leftRightMargin = TooltipTextSize / 2;
-                                            canvas.DrawRoundRect(new SKRect(textPath.Bounds.Left - leftRightMargin, textPath.Bounds.Top - topBottomMargin, textPath.Bounds.Right + leftRightMargin, textPath.Bounds.Bottom + topBottomMargin), TooltipRadius, TooltipRadius, tooltipBackgroundPaint);
-                                        }
-                                        
-                                        canvas.DrawText(entry.Label, _tooltipPoint.X, tooltipTextYPosition, textPaint);
-                                    }
+                                    DrawTooltip(canvas, entry);
                                 }
 
                                 path.LineTo(points[i]);
@@ -233,6 +227,33 @@ namespace Microcharts
                         canvas.DrawPath(path, paint);
                     }
                 }
+            }
+        }
+
+        private void DrawTooltip(SKCanvas canvas, ChartEntry entry)
+        {
+            using (var textPaint = new SKPaint
+            {
+                Style = SKPaintStyle.StrokeAndFill,
+                Color = TooltipTextColor,
+                TextAlign = SKTextAlign.Center,
+                TextSize = TooltipTextSize
+            })
+            {
+                var topBottomMargin = TooltipTextSize;
+                var tooltipTextYPosition = _tooltipPoint.Y - TooltipYOffset - topBottomMargin;
+                var textPath = textPaint.GetTextPath(entry.Label, _tooltipPoint.X, tooltipTextYPosition);
+                using (var tooltipBackgroundPaint = new SKPaint
+                {
+                    Style = SKPaintStyle.StrokeAndFill,
+                    Color = TooltipBackgroundColor
+                })
+                {
+                    var leftRightMargin = TooltipTextSize / 2;
+                    canvas.DrawRoundRect(new SKRect(textPath.Bounds.Left - leftRightMargin, textPath.Bounds.Top - topBottomMargin, textPath.Bounds.Right + leftRightMargin, textPath.Bounds.Bottom + topBottomMargin), TooltipRadius, TooltipRadius, tooltipBackgroundPaint);
+                }
+
+                canvas.DrawText(entry.Label, _tooltipPoint.X, tooltipTextYPosition, textPaint);
             }
         }
 
