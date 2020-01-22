@@ -89,6 +89,16 @@ namespace Microcharts
         /// </summary>
         public bool IsTooltipEnabled { get; set; }
 
+        /// <summary>
+        /// A collection of additional values that can be shown on the chart. Can be used to draw several separate lines on the chart.
+        /// </summary>
+        public IEnumerable<AreaEntry> AreaEntries { get; set; }
+
+        /// <summary>
+        /// Indicates whether the points for the AreaEntries should be drawn
+        /// </summary>
+        public bool ShouldDrawAreaPoints { get; set; } = true;
+
         #endregion
 
         #region Methods
@@ -118,6 +128,28 @@ namespace Microcharts
             _shouldDrawTooltip = false;
             _tooltipPoint = default;
             TouchedEntry = null;
+        }
+
+        public override void DrawContent(SKCanvas canvas, int width, int height)
+        {
+            base.DrawContent(canvas, width, height);
+            if (AreaEntries != null)
+            {
+                var fromEntries = AreaEntries.Select(ae => new ChartEntry(ae.FromValue) { Color = ae.Color });
+                var toEntries = AreaEntries.Select(ae => new ChartEntry(ae.ToValue) { Color = ae.Color });
+                var fromEntriesPoints = CalculatePoints(ItemSize, Origin, HeaderHeight, fromEntries, YAxisXShift);
+                var toEntriesPoints = CalculatePoints(ItemSize, Origin, HeaderHeight, toEntries, YAxisXShift);
+
+                if (ShouldDrawAreaPoints)
+                {
+                    DrawPoints(canvas, fromEntriesPoints, fromEntries);
+                    DrawPoints(canvas, toEntriesPoints, toEntries);
+                }
+
+                this.DrawArea(canvas, fromEntriesPoints, ItemSize, Origin, fromEntries, toEntriesPoints);
+                this.DrawLine(canvas, fromEntriesPoints, ItemSize, fromEntries);
+                this.DrawLine(canvas, toEntriesPoints, ItemSize, toEntries);
+            }
         }
 
         protected override void DrawAreas(SKCanvas canvas, SKPoint[] points, SKSize itemSize, float origin,
@@ -209,8 +241,8 @@ namespace Microcharts
                         var finishY = origin;
                         if (pointsTo != null)
                         {
-                            initialY = pointsTo.Max(p => p.Y);
-                            finishY = pointsTo.Min(p => p.Y);
+                            initialY = pointsTo.First().Y;
+                            finishY = pointsTo.Last().Y;
                         }
 
                         path.MoveTo(points.First().X, initialY);
@@ -221,14 +253,28 @@ namespace Microcharts
                         {
                             if (this.LineMode == LineMode.Spline)
                             {
-                                var entry = entries.ElementAt(i);
-                                var nextEntry = entries.ElementAt(i + 1);
                                 var cubicInfo = this.CalculateCubicInfo(points, i, itemSize);
                                 path.CubicTo(cubicInfo.control, cubicInfo.nextControl, cubicInfo.nextPoint);
                             }
                             else if (this.LineMode == LineMode.Straight)
                             {
                                 path.LineTo(points[i]);
+                            }
+                        }
+
+                        if (pointsTo != null)
+                        {
+                            for (int i = pointsTo.Length - 1; i >= 0; i--)
+                            {
+                                if (this.LineMode == LineMode.Spline)
+                                {
+                                    var cubicInfo = this.CalculateCubicInfo(pointsTo, i, itemSize);
+                                    path.CubicTo(cubicInfo.control, cubicInfo.nextControl, cubicInfo.nextPoint);
+                                }
+                                else if (this.LineMode == LineMode.Straight)
+                                {
+                                    path.LineTo(pointsTo[i]);
+                                }
                             }
                         }
                         

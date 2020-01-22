@@ -113,17 +113,32 @@ namespace Microcharts
         /// </summary>
         public IEnumerable<string> XAxisLabels { get; set; }
 
-        /// <summary>
-        /// A collection of additional values that can be shown on the chart. Can be used to draw several separate lines on the chart.
-        /// </summary>
-        public IEnumerable<AreaEntry> AreaEntries { get; set; }
-
         private float ValueRange => this.MaxValue - this.MinValue;
 
         /// <summary>
         /// The calculated points for the entries.
         /// </summary>
         protected SKPoint[] EntriesPoints { get; private set; }
+
+        /// <summary>
+        /// Height of the Header part of the chart
+        /// </summary>
+        protected float HeaderHeight { get; private set; }
+
+        /// <summary>
+        /// Size of each item drawn on the chart based on the X Axis
+        /// </summary>
+        protected SKSize ItemSize { get; private set; }
+
+        /// <summary>
+        /// Origin point on the X Axis
+        /// </summary>
+        protected float Origin { get; private set; }
+
+        /// <summary>
+        /// Distance between the Y Axis and the first point on the Chart
+        /// </summary>
+        protected float YAxisXShift { get; private set; }
 
         #endregion
 
@@ -134,7 +149,7 @@ namespace Microcharts
             if (this.Entries != null)
             {
                 int yAxisWidth = 0;
-                float yAxisXShift = 0;
+                YAxisXShift = 0;
                 List<float> yAxisIntervalLabels = new List<float>();
 
                 if (ShowYAxisText || ShowYAxisLines)
@@ -160,7 +175,7 @@ namespace Microcharts
                     yAxisWidth = (int)(width - longestYAxisLabelWidth);
 
                     if (YAxisPosition == Position.Left)
-                        yAxisXShift = longestYAxisLabelWidth;
+                        YAxisXShift = longestYAxisLabelWidth;
 
                     // to reduce chart width
                     width = yAxisWidth;
@@ -172,13 +187,13 @@ namespace Microcharts
 
                 var valueLabels = this.Entries.Select(x => x.ValueLabel).ToArray();
                 var valueLabelSizes = this.MeasureLabels(valueLabels);
-                var headerHeight = this.CalculateFooterHeaderHeight(valueLabelSizes, this.ValueLabelOrientation, valueLabels);
+                HeaderHeight = this.CalculateFooterHeaderHeight(valueLabelSizes, this.ValueLabelOrientation, valueLabels);
 
-                var itemSize = this.CalculateItemSize(width, height, footerHeight, headerHeight, labels.Length);
-                var origin = this.CalculateYOrigin(itemSize.Height, headerHeight);
-                var points = this.CalculatePoints(itemSize, origin, headerHeight, Entries, yAxisXShift);
+                ItemSize = this.CalculateItemSize(width, height, footerHeight, HeaderHeight, labels.Length);
+                Origin = this.CalculateYOrigin(ItemSize.Height, HeaderHeight);
+                var points = this.CalculatePoints(ItemSize, Origin, HeaderHeight, Entries, YAxisXShift);
                 EntriesPoints = points;
-                var labelsPoints = this.CalculateLabelsPoints(itemSize, labels.Count(), yAxisXShift);
+                var labelsPoints = this.CalculateLabelsPoints(ItemSize, labels.Count(), YAxisXShift);
 
                 var cnt = 0;
                 if (ShowYAxisText || ShowYAxisLines)
@@ -187,7 +202,7 @@ namespace Microcharts
                         .Select(t => new ValueTuple<string, SKPoint>
                         (
                             t.ToString(),
-                            new SKPoint(YAxisPosition == Position.Left ? yAxisXShift : width, CalculatePoint(t, cnt++, itemSize, origin, headerHeight).Y)
+                            new SKPoint(YAxisPosition == Position.Left ? YAxisXShift : width, CalculatePoint(t, cnt++, ItemSize, Origin, HeaderHeight).Y)
                         ))
                         .ToList();
 
@@ -202,30 +217,16 @@ namespace Microcharts
                             if (YAxisPosition == Position.Right)
                                 return SKRect.Create(0, pt.Y, width, 0);
                             else
-                                return SKRect.Create(yAxisXShift, pt.Y, width, 0);
+                                return SKRect.Create(YAxisXShift, pt.Y, width, 0);
                         });
                         this.DrawYAxisLines(canvas, lines);
                     }
                 }
 
-                if (AreaEntries != null)
-                {
-                    var fromEntries = AreaEntries.Select(ae => new ChartEntry(ae.FromValue) { Color = ae.Color });
-                    var toEntries = AreaEntries.Select(ae => new ChartEntry(ae.ToValue) { Color = ae.Color });
-                    var fromEntriesPoints = CalculatePoints(itemSize, origin, headerHeight, fromEntries, yAxisXShift);
-                    var toEntriesPoints = CalculatePoints(itemSize, origin, headerHeight, toEntries, yAxisXShift);
-
-                    DrawPoints(canvas, fromEntriesPoints, fromEntries);
-                    DrawPoints(canvas, toEntriesPoints, toEntries);
-
-                    DrawAreas(canvas, fromEntriesPoints, itemSize, origin, headerHeight, fromEntries, toEntriesPoints);
-                    DrawAreas(canvas, toEntriesPoints, itemSize, origin, headerHeight, toEntries, fromEntriesPoints);
-                }
-
-                this.DrawAreas(canvas, points, itemSize, origin, headerHeight, Entries);
+                this.DrawAreas(canvas, points, ItemSize, Origin, HeaderHeight, Entries);
                 this.DrawPoints(canvas, points, Entries);
-                this.DrawHeader(canvas, valueLabels, valueLabelSizes, points, itemSize, height, headerHeight);
-                this.DrawFooter(canvas, labels, labelSizes, labelsPoints, itemSize, height, footerHeight);
+                this.DrawHeader(canvas, valueLabels, valueLabelSizes, points, ItemSize, height, HeaderHeight);
+                this.DrawFooter(canvas, labels, labelSizes, labelsPoints, ItemSize, height, footerHeight);
             }
         }
 
