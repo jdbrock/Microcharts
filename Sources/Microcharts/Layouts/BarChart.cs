@@ -59,11 +59,11 @@ namespace Microcharts
 
                 var itemSize = this.CalculateItemSize(width, height, footerHeight, headerHeight, labels.Length);
                 var origin = this.CalculateYOrigin(itemSize.Height, headerHeight);
-                var points = this.CalculatePoints(itemSize, origin, headerHeight);
+                var points = this.CalculatePoints(itemSize, origin, headerHeight, Entries);
 
                 this.DrawBarAreas(canvas, points, itemSize, headerHeight);
                 this.DrawBars(canvas, points, itemSize, origin, headerHeight);
-                this.DrawPoints(canvas, points);
+                this.DrawPoints(canvas, points, Entries);
                 this.DrawHeader(canvas, valueLabels, valueLabelSizes, points, itemSize, height, headerHeight);
                 this.DrawFooter(canvas, labels, labelSizes, points, itemSize, height, footerHeight);
             }

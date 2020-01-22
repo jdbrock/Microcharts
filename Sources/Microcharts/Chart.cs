@@ -213,12 +213,7 @@ namespace Microcharts
         {
             get
             {
-                if (!this.Entries.Any())
-                {
-                    return 0;
-                }
-
-                if (this.InternalMaxValue == null)
+                if (this.InternalMaxValue == null && Entries != null)
                 {
                     return Math.Max(0, this.Entries.Max(x => x.Value));
                 }
@@ -285,6 +280,11 @@ namespace Microcharts
         /// <param name="width">The width.</param>
         /// <param name="height">The height.</param>
         public abstract void DrawContent(SKCanvas canvas, int width, int height);
+
+        /// <summary>
+        /// Executes a tap somewhere on the chart's canvas
+        /// </summary>
+        public virtual void TapCanvas(SKPoint locationTapped) { }
 
         /// <summary>
         /// Draws caption elements on the right or left side of the chart.
