@@ -126,6 +126,23 @@ namespace Microcharts
             //base.DrawAreas(canvas, points, itemSize, origin);
             this.DrawArea(canvas, points, itemSize, origin, entries, pointsTo);
             this.DrawLine(canvas, points, itemSize, entries);
+            if (_shouldDrawTooltip)
+            {
+                int pointForDrawingIndex = -1;
+                for (int i = 0; i < points.Length; i++)
+                {
+                    if (points[i] == _tooltipPoint)
+                    {
+                        pointForDrawingIndex = i;
+                        break;
+                    }
+                }
+
+                if (pointForDrawingIndex >= 0)
+                {
+                    DrawTooltip(canvas, entries.ElementAt(pointForDrawingIndex));
+                }
+            }
         }
 
         protected void DrawLine(SKCanvas canvas, SKPoint[] points, SKSize itemSize, IEnumerable<ChartEntry> entries)
@@ -160,11 +177,6 @@ namespace Microcharts
                             }
                             else if (this.LineMode == LineMode.Straight)
                             {
-                                if (_shouldDrawTooltip && _tooltipPoint == points[i])
-                                {
-                                    DrawTooltip(canvas, entry);
-                                }
-
                                 path.LineTo(points[i]);
                             }
                         }
