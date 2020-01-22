@@ -150,6 +150,16 @@ namespace Microcharts
                 this.DrawLine(canvas, fromEntriesPoints, ItemSize, fromEntries);
                 this.DrawLine(canvas, toEntriesPoints, ItemSize, toEntries);
             }
+
+            if (_shouldDrawTooltip)
+            {
+                int pointForDrawingIndex = Array.IndexOf(EntriesPoints, _tooltipPoint);
+
+                if (pointForDrawingIndex >= 0)
+                {
+                    DrawTooltip(canvas, Entries.ElementAt(pointForDrawingIndex));
+                }
+            }
         }
 
         protected override void DrawAreas(SKCanvas canvas, SKPoint[] points, SKSize itemSize, float origin,
@@ -158,23 +168,6 @@ namespace Microcharts
             //base.DrawAreas(canvas, points, itemSize, origin);
             this.DrawArea(canvas, points, itemSize, origin, entries, pointsTo);
             this.DrawLine(canvas, points, itemSize, entries);
-            if (_shouldDrawTooltip)
-            {
-                int pointForDrawingIndex = -1;
-                for (int i = 0; i < points.Length; i++)
-                {
-                    if (points[i] == _tooltipPoint)
-                    {
-                        pointForDrawingIndex = i;
-                        break;
-                    }
-                }
-
-                if (pointForDrawingIndex >= 0)
-                {
-                    DrawTooltip(canvas, entries.ElementAt(pointForDrawingIndex));
-                }
-            }
         }
 
         protected void DrawLine(SKCanvas canvas, SKPoint[] points, SKSize itemSize, IEnumerable<ChartEntry> entries)
