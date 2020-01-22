@@ -16,7 +16,7 @@ namespace Microcharts
     public class LineChart : PointChart
     {
         private const int TooltipYOffset = 50;
-        private int _touchRadius = 1000;
+        private int _touchRadius = 33;
 
         private bool _shouldDrawTooltip = false;
         private SKPoint _tooltipPoint;
@@ -112,7 +112,7 @@ namespace Microcharts
                 {
                     SKPoint point = (SKPoint)EntriesPoints[i];
                     var distance = Math.Pow(point.X - locationTapped.X, 2) + Math.Pow(point.Y - locationTapped.Y, 2);
-                    if (Math.Pow(distance, 2) <= Math.Pow(_touchRadius, 2))
+                    if (distance <= Math.Pow(_touchRadius, 2))
                     {
                         if (_tooltipPoint != point)
                         {
