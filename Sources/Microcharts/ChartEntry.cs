@@ -55,6 +55,11 @@ namespace Microcharts
         /// <value>The color of the text.</value>
         public SKColor TextColor { get; set; } = SKColors.Gray;
 
+        /// <summary>
+        /// Field not used for visualisation. Can be used to store any data that could be associated with the Entry.
+        /// </summary>
+        public object EntryData { get; set; }
+
         #endregion
     }
 }
