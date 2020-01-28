@@ -257,13 +257,14 @@ namespace Microcharts
 
                         if (pointsTo != null)
                         {
-                            last = (this.LineMode == LineMode.Spline) ? 1 : 0;
+                            var first = 0;
                             if (LineMode == LineMode.Spline)
                             {
                                 path.LineTo(pointsTo.Last());
+                                first = 1;
                             }
 
-                            for (int i = pointsTo.Length - 1; i >= last; i--)
+                            for (int i = pointsTo.Length - 1; i >= first; i--)
                             {
                                 if (this.LineMode == LineMode.Spline)
                                 {
