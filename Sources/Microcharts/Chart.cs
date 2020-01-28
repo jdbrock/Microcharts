@@ -188,14 +188,16 @@ namespace Microcharts
         {
             get
             {
-                //if (!this.Entries.Any())
-                //{
-                //    return 0;
-                //}
-
                 if (this.InternalMinValue == null && Entries != null)
                 {
-                    return Math.Min(0, this.Entries.Min(x => x.Value));
+                    if (this.Entries.Any())
+                    {
+                        return this.Entries.Min(x => x.Value);
+                    }
+
+                    return 0;
+
+
                 }
 
                 return this.InternalMinValue.Value;
@@ -215,7 +217,12 @@ namespace Microcharts
             {
                 if (this.InternalMaxValue == null && Entries != null)
                 {
-                    return Math.Max(0, this.Entries.Max(x => x.Value));
+                    if (Entries.Any())
+                    {
+                        return this.Entries.Max(x => x.Value);
+                    }
+
+                    return 0;
                 }
 
                 return this.InternalMaxValue.Value;

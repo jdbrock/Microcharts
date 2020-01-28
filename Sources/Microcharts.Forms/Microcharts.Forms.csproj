@@ -2,21 +2,22 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard1.3;portable-net45+win8+wpa81+wp8</TargetFrameworks>
-    <Version>0.8.4-pre</Version>
+    <Version>1.0.0</Version>
     <AssemblyVersion>0.8.4.1</AssemblyVersion>
     <FileVersion>0.8.4.1</FileVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Description>Microcharts is an extremely simple charting library for a wide range of platforms (see Compatibility section below), with shared code and rendering for all of them!</Description>
+    <Description>Microcharts is an extremely simple charting library for a wide range of platforms (see Compatibility section below), with shared code and rendering for all of them! This package is an updated version by OSI - original authors are left unchanged.</Description>
     <Copyright>Copyright 2017</Copyright>
     <PackageLicenseUrl>https://github.com/aloisdeniel/Microcharts/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/aloisdeniel/Microcharts/</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/aloisdeniel/Microcharts/</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/osi-open-source/Microcharts</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/osi-open-source/Microcharts</RepositoryUrl>
     <RepositoryType>GitHub</RepositoryType>
     <Authors>Aloïs Deniel, Joseph Nixon</Authors>
     <PackageTags>xamarin ios android chart skia Forms</PackageTags>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <Company>Aloïs Deniel, Joseph Nixon</Company>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <Company>OSI</Company>
     <PackageIconUrl>https://raw.githubusercontent.com/aloisdeniel/Microcharts/master/Documentation/Logo.png</PackageIconUrl>
+    <Product>OSI.Microcharts.Forms</Product>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)'=='portable-net45+win8+wpa81+wp8'">

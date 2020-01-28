@@ -257,12 +257,18 @@ namespace Microcharts
 
                         if (pointsTo != null)
                         {
-                            for (int i = pointsTo.Length - 1; i >= 0; i--)
+                            last = (this.LineMode == LineMode.Spline) ? 1 : 0;
+                            if (LineMode == LineMode.Spline)
+                            {
+                                path.LineTo(pointsTo.Last());
+                            }
+
+                            for (int i = pointsTo.Length - 1; i >= last; i--)
                             {
                                 if (this.LineMode == LineMode.Spline)
                                 {
-                                    var cubicInfo = this.CalculateCubicInfo(pointsTo, i, itemSize);
-                                    path.CubicTo(cubicInfo.control, cubicInfo.nextControl, cubicInfo.nextPoint);
+                                    var cubicInfo = this.CalculateReverseCubicInfo(pointsTo, i, itemSize);
+                                    path.CubicTo(cubicInfo.control, cubicInfo.previousControl, cubicInfo.previousPoint);
                                 }
                                 else if (this.LineMode == LineMode.Straight)
                                 {
@@ -316,6 +322,16 @@ namespace Microcharts
             var currentControl = point + controlOffset;
             var nextControl = nextPoint - controlOffset;
             return (point, currentControl, nextPoint, nextControl);
+        }
+
+        private (SKPoint point, SKPoint control, SKPoint previousPoint, SKPoint previousControl) CalculateReverseCubicInfo(SKPoint[] points, int i, SKSize itemSize)
+        {
+            var point = points[i];
+            var previousPoint = points[i - 1];
+            var controlOffset = new SKPoint(itemSize.Width * 0.8f, 0);
+            var currentControl = point - controlOffset;
+            var previousControl = previousPoint + controlOffset;
+            return (point, currentControl, previousPoint, previousControl);
         }
 
         private SKShader CreateXGradient(SKPoint[] points, IEnumerable<ChartEntry> entries, byte alpha = 255)
