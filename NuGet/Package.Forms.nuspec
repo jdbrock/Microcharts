@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>Microcharts.Forms-OSI</id>
+    <id>Microcharts.Forms</id>
     <version>$version$</version>
     <title>Microcharts for Xamarin.Forms, extended by OSI</title>
     <authors>Object Systems International</authors>
